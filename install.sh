@@ -23,6 +23,7 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # Copy script
+mkdir -p "$(dirname "$TARGET")"
 if [[ -f "$SCRIPT_DIR/statusline.sh" ]]; then
   cp "$SCRIPT_DIR/statusline.sh" "$TARGET"
 else
