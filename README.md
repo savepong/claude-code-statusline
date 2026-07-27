@@ -55,7 +55,7 @@ Turn the blank status bar into a real-time dashboard: model, context usage with 
 ### Quick install
 
 ```bash
-git clone https://github.com/kcchien/claude-code-statusline.git
+git clone https://github.com/savepong/claude-code-statusline.git
 cd claude-code-statusline
 ./install.sh
 ```
