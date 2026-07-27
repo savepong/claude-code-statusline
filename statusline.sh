@@ -114,6 +114,8 @@ parsed=$(echo "$input" | jq -r '
   (.cost.total_duration_ms // 0 | tostring),
   (.context_window.context_window_size // 0 | tostring),
   (.worktree.name // ""),
+  (.rate_limits.seven_day.resets_at // 0 | tostring),
+  (.rate_limits.five_hour.resets_at // 0 | tostring),
   "END"
 ' 2>/dev/null) || fallback_prompt "─ │ parse error"
 
@@ -132,6 +134,8 @@ parsed=$(echo "$input" | jq -r '
   IFS= read -r duration_ms
   IFS= read -r ctx_size
   IFS= read -r wt_name
+  IFS= read -r reset7d
+  IFS= read -r reset5h
   IFS= read -r _sentinel
 } <<< "$parsed"
 
@@ -301,15 +305,31 @@ rate_section=""
 rate5h_int=${rate5h%.*}; rate5h_int=${rate5h_int:-0}
 rate7d_int=${rate7d%.*}; rate7d_int=${rate7d_int:-0}
 
+# 重置倒數（resets_at 為 Unix epoch 秒）→ ·3d / ·4h / ·37m / ·<1m
+# 無 resets_at（例如 API key 認證）時輸出空字串
+fmt_reset() {
+  local epoch="${1%.*}"; epoch="${epoch:-0}"
+  [[ "$epoch" =~ ^[0-9]+$ ]] || return 0
+  local secs=$(( epoch - $(date +%s) ))
+  (( secs > 0 )) || return 0
+  if   (( secs >= 86400 )); then printf '%s' "${GRAY}·$(( secs / 86400 ))d${RST}"
+  elif (( secs >= 3600 ));  then printf '%s' "${GRAY}·$(( secs / 3600 ))h${RST}"
+  elif (( secs >= 60 ));    then printf '%s' "${GRAY}·$(( secs / 60 ))m${RST}"
+  else                           printf '%s' "${GRAY}·<1m${RST}"; fi
+}
+
+reset5h_disp=$(fmt_reset "${reset5h:-0}")
+reset7d_disp=$(fmt_reset "${reset7d:-0}")
+
 rate_parts=""
 if (( rate5h_int >= 0 )); then
-  if (( rate5h_int >= 80 )); then rate_parts+="${RED}5h:${rate5h_int}%${RST}"
-  else rate_parts+="${GRAY}5h:${rate5h_int}%${RST}"; fi
+  if (( rate5h_int >= 80 )); then rate_parts+="${RED}5h:${rate5h_int}%${RST}${reset5h_disp}"
+  else rate_parts+="${GRAY}5h:${rate5h_int}%${RST}${reset5h_disp}"; fi
 fi
 if (( rate7d_int >= 0 )); then
   if [[ -n "$rate_parts" ]]; then rate_parts+=" "; fi
-  if (( rate7d_int >= 80 )); then rate_parts+="${RED}7d:${rate7d_int}%${RST}"
-  else rate_parts+="${GRAY}7d:${rate7d_int}%${RST}"; fi
+  if (( rate7d_int >= 80 )); then rate_parts+="${RED}7d:${rate7d_int}%${RST}${reset7d_disp}"
+  else rate_parts+="${GRAY}7d:${rate7d_int}%${RST}${reset7d_disp}"; fi
 fi
 if [[ -n "$rate_parts" ]]; then
   rate_section="${SEP}${rate_parts}"
