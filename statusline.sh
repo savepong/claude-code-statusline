@@ -48,7 +48,6 @@ fi
 # 符號集
 if [[ "$USE_ASCII" == "1" ]]; then
   S_BRAND="<>"
-  S_BRANCH=">"
   S_WARN="!"
   S_PROMPT=">"
   S_TIME=""
@@ -56,7 +55,6 @@ if [[ "$USE_ASCII" == "1" ]]; then
   SEP=" | "
 elif [[ "$USE_NERDFONT" == "1" ]]; then
   S_BRAND="◆"
-  S_BRANCH=" "
   S_WARN=" 󰀦"
   S_PROMPT="❯"
   S_TIME="󰔟 "
@@ -68,7 +66,6 @@ elif [[ "$USE_NERDFONT" == "1" ]]; then
   fi
 else
   S_BRAND="◆"
-  S_BRANCH="⎇"
   S_WARN=" ⚠"
   S_PROMPT="❯"
   S_TIME=""
