@@ -156,6 +156,8 @@ if (( pct_int > 100 )); then pct_int=100; fi
 
 bar_filled=$(( pct_int / 10 ))
 if (( bar_filled > 10 )); then bar_filled=10; fi
+# 一格 = 10%，整數除法會讓 1~9% 變成完全空的進度條，跟 0% 無法區分
+if (( pct_int > 0 && bar_filled == 0 )); then bar_filled=1; fi
 
 # 漸層色（真彩色）：綠 → 黃 → 橘 → 紅
 GRAD_R=(46 116 186 241 239 236 233 231 211 192)
@@ -174,7 +176,7 @@ elif (( USE_TRUECOLOR )); then
     if (( i < bar_filled )); then
       bar+="\\033[38;2;${GRAD_R[$i]};${GRAD_G[$i]};${GRAD_B[$i]}m█"
     else
-      bar+="\\033[38;2;60;60;60m░"
+      bar+="\\033[38;2;90;90;90m░"
     fi
   done
   bar+="${RST}"
