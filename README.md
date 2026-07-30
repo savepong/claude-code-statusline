@@ -41,7 +41,7 @@ Turn the blank status bar into a real-time dashboard: model, context usage with 
 | **Context window size** | Shows `1M` or `200k` only when not already in the model name. |
 | **Brand identity** | `◆` diamond in Anthropic purple (#7266EA). |
 | **3-tier rendering** | True color → ANSI → ASCII. Works in any terminal. |
-| **Nerd Font support** | Optional: ``, `󰔟`, `` icons. Set `CLAUDE_STATUSLINE_NERDFONT=1`. |
+| **Nerd Font support** | Optional: `󰔟`, `` icons. Set `CLAUDE_STATUSLINE_NERDFONT=1`. |
 | **Powerline separators** | Optional: `` arrows. Set `CLAUDE_STATUSLINE_POWERLINE=1`. |
 | **< 50ms** | Single `jq` call + cached git. No perceptible lag. |
 
@@ -108,7 +108,7 @@ Claude Code's `statusLine` hook sends a JSON payload to your script via stdin af
 
 This script:
 
-1. **Single `jq` call** (~3ms) — parses all 14 fields at once
+1. **Single `jq` call** (~3ms) — parses all 17 fields at once
 2. **Git cache** (~0ms on cache hit, ~40ms on refresh) — dirty check cached for 5 seconds in `/tmp/`
 3. **Smart assembly** — only non-zero sections are rendered
 4. **`printf '%b'`** — interprets ANSI escape codes for the final colored output
@@ -125,6 +125,7 @@ The status line receives [these JSON fields](https://code.claude.com/docs/en/sta
 - `cost.total_duration_ms` — elapsed time
 - `cost.total_lines_added/removed` — code changes
 - `rate_limits.five_hour/seven_day.used_percentage` — rate limits
+- `effort.level` — thinking effort (low/medium/high/xhigh), shown next to the model name
 - `worktree.branch/name` — git worktree info
 - `agent.name` — subagent name
 - ...and more. See the [official docs](https://code.claude.com/docs/en/statusline).

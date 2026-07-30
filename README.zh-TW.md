@@ -41,7 +41,7 @@
 | **上下文視窗大小** | 顯示 `1M` 或 `200k`，但如果模型名稱已包含此資訊則不重複。 |
 | **品牌識別** | `◆` 菱形，用 Anthropic 品牌紫 (#7266EA) 上色。 |
 | **三層渲染退回** | 真彩色 → ANSI → ASCII。任何終端機都能用。 |
-| **Nerd Font 支援** | 選配：``, `󰔟`, `` 圖示。設定 `CLAUDE_STATUSLINE_NERDFONT=1`。 |
+| **Nerd Font 支援** | 選配：`󰔟`, `` 圖示。設定 `CLAUDE_STATUSLINE_NERDFONT=1`。 |
 | **Powerline 分隔符** | 選配：`` 箭頭。設定 `CLAUDE_STATUSLINE_POWERLINE=1`。 |
 | **< 50ms** | 單次 `jq` 呼叫 + Git 快取。無感延遲。 |
 
@@ -104,7 +104,7 @@ Claude Code 的 `statusLine` 機制會在每次助理回覆後，把完整的 se
 
 本腳本的處理流程：
 
-1. **單次 `jq` 呼叫**（~3ms）——一次解析全部 14 個欄位
+1. **單次 `jq` 呼叫**（~3ms）——一次解析全部 17 個欄位
 2. **Git 快取**（命中 ~0ms，重整 ~40ms）——髒標記結果快取在 `/tmp/`，5 秒更新一次
 3. **智慧組裝**——只有非零的區段才會出現在畫面上
 4. **`printf '%b'`**——最終解釋 ANSI 跳脫碼，輸出彩色結果
@@ -121,6 +121,7 @@ Claude Code 的 `statusLine` 機制會在每次助理回覆後，把完整的 se
 - `cost.total_duration_ms` — 經過時間
 - `cost.total_lines_added/removed` — 程式碼變動行數
 - `rate_limits.five_hour/seven_day.used_percentage` — 速率限制
+- `effort.level` — 思考強度（low/medium/high/xhigh），顯示在模型名稱旁邊
 - `worktree.branch/name` — Git 工作樹資訊
 - `agent.name` — 子代理名稱
 

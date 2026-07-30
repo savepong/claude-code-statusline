@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 # ~/.claude/statusline.sh — Claude Code session status line (aesthetic edition)
 #
-# 三行輸出：
-#   第一行：◆ 模型 │ 漸層進度條 百分比 │ 費用 │ 時間 │ 速率限制
-#   第二行：⎇分支* │ +增/-減 │ 目錄
-#   第三行：❯ 提示符（顏色跟上下文用量連動）
+# 單行輸出：
+#   目錄 │ 分支* │ +增/-減 │ ◆ 模型 │ 漸層進度條 百分比 │ 費用 │ 時間 │ 速率限制
 #
 # 環境變數：
 #   CLAUDE_STATUSLINE_ASCII=1     退回純 ASCII
@@ -50,7 +48,6 @@ fi
 # 符號集
 if [[ "$USE_ASCII" == "1" ]]; then
   S_BRAND="<>"
-  S_BRANCH=">"
   S_WARN="!"
   S_PROMPT=">"
   S_TIME=""
@@ -58,7 +55,6 @@ if [[ "$USE_ASCII" == "1" ]]; then
   SEP=" | "
 elif [[ "$USE_NERDFONT" == "1" ]]; then
   S_BRAND="◆"
-  S_BRANCH=" "
   S_WARN=" 󰀦"
   S_PROMPT="❯"
   S_TIME="󰔟 "
@@ -70,7 +66,6 @@ elif [[ "$USE_NERDFONT" == "1" ]]; then
   fi
 else
   S_BRAND="◆"
-  S_BRANCH="⎇"
   S_WARN=" ⚠"
   S_PROMPT="❯"
   S_TIME=""
@@ -116,6 +111,7 @@ parsed=$(echo "$input" | jq -r '
   (.worktree.name // ""),
   (.rate_limits.seven_day.resets_at // 0 | tostring),
   (.rate_limits.five_hour.resets_at // 0 | tostring),
+  (.effort.level // ""),
   "END"
 ' 2>/dev/null) || fallback_prompt "─ │ parse error"
 
@@ -136,6 +132,7 @@ parsed=$(echo "$input" | jq -r '
   IFS= read -r wt_name
   IFS= read -r reset7d
   IFS= read -r reset5h
+  IFS= read -r effort_level
   IFS= read -r _sentinel
 } <<< "$parsed"
 
@@ -144,6 +141,12 @@ parsed=$(echo "$input" | jq -r '
 # ═══════════════════════════════════════════════════════════════
 
 model="${model_name:-─}"
+
+# 思考強度（effort level，緊接在模型名稱後）
+effort_section=""
+if [[ -n "${effort_level:-}" ]]; then
+  effort_section=" ${GRAY}${effort_level}${RST}"
+fi
 
 # ═══════════════════════════════════════════════════════════════
 # 上下文進度條
@@ -349,7 +352,7 @@ else prompt_color="$GREEN"; fi
 # 組裝第一行
 # ═══════════════════════════════════════════════════════════════
 
-line1="${PURPLE}${S_BRAND}${RST} ${CYAN}${model}${RST}"
+line1="${PURPLE}${S_BRAND}${RST} ${CYAN}${model}${RST}${effort_section}"
 line1+="${SEP}${bar} ${pct_color}${pct_int}%${RST}${ctx_warn}${ctx_label}"
 line1+="${SEP}${cost_color}${S_COST}\$${cost_fmt}${RST}"
 line1+="${dur_section}"
@@ -360,13 +363,18 @@ line1+="${rate_section}"
 # ═══════════════════════════════════════════════════════════════
 
 parts=()
+parts+=("${BLUE}${dir}${RST}")
+branch_section=""
 if [[ -n "$git_branch" ]]; then
-  parts+=("${GRAY}${S_BRANCH}${git_branch}${dirty}${RST}")
+  branch_section="${GRAY}${git_branch}${dirty}${RST}"
 fi
-if [[ -n "$lines_section" ]]; then
+if [[ -n "$branch_section" && -n "$lines_section" ]]; then
+  parts+=("${branch_section} ${lines_section}")
+elif [[ -n "$branch_section" ]]; then
+  parts+=("${branch_section}")
+elif [[ -n "$lines_section" ]]; then
   parts+=("${lines_section}")
 fi
-parts+=("${BLUE}${dir}${RST}")
 
 # Agent / Worktree 指示器（僅在非主 session 時顯示）
 if [[ -n "${wt_name:-}" ]]; then
@@ -387,5 +395,5 @@ done
 # 輸出
 # ═══════════════════════════════════════════════════════════════
 
-# 只輸出兩行（Claude Code 有自己的輸入提示符，不需要我們的 ❯）
-printf '%b\n%b' "$line1" "$line2"
+# 合併為單行輸出（原第二行接在原第一行前面）
+printf '%b' "${line2}${SEP}${line1}"
