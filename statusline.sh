@@ -2,7 +2,7 @@
 # ~/.claude/statusline.sh — Claude Code session status line (aesthetic edition)
 #
 # 單行輸出：
-#   目錄 │ 分支* │ +增/-減 │ ◆ 模型 │ 漸層進度條 百分比 │ 費用 │ 時間 │ 速率限制
+#   目錄 on 分支 [!] │ +增/-減 │ ◆ 模型 │ 漸層進度條 百分比 │ 費用 │ 時間 │ 速率限制
 #
 # 環境變數：
 #   CLAUDE_STATUSLINE_ASCII=1     退回純 ASCII
@@ -30,13 +30,16 @@ fi
 
 RST='\033[0m'
 CYAN='\033[36m'
-BLUE='\033[34m'
 GRAY='\033[90m'
 DIM='\033[2m'
 YELLOW='\033[33m'
 GREEN='\033[32m'
 RED='\033[31m'
 MAGENTA='\033[35m'
+# Starship 預設風格：目錄粗體青、分支粗體紫、髒標記粗體紅
+B_CYAN='\033[1;36m'
+B_PURPLE='\033[1;35m'
+B_RED='\033[1;31m'
 
 # Anthropic 品牌紫 (#7266EA)
 if (( USE_TRUECOLOR )); then
@@ -52,6 +55,7 @@ if [[ "$USE_ASCII" == "1" ]]; then
   S_PROMPT=">"
   S_TIME=""
   S_COST=""
+  S_BRANCH=""
   SEP=" | "
 elif [[ "$USE_NERDFONT" == "1" ]]; then
   S_BRAND="◆"
@@ -59,6 +63,7 @@ elif [[ "$USE_NERDFONT" == "1" ]]; then
   S_PROMPT="❯"
   S_TIME="󰔟 "
   S_COST=" "
+  S_BRANCH=" "
   if [[ "$USE_POWERLINE" == "1" ]]; then
     SEP="  "
   else
@@ -70,6 +75,7 @@ else
   S_PROMPT="❯"
   S_TIME=""
   S_COST=""
+  S_BRANCH=""
   if [[ "$USE_POWERLINE" == "1" ]]; then
     SEP="  "
   else
@@ -363,18 +369,16 @@ line1+="${rate_section}"
 # ═══════════════════════════════════════════════════════════════
 
 parts=()
-parts+=("${BLUE}${dir}${RST}")
-branch_section=""
+# 目錄 + 分支以 Starship 預設格式連接：dir on  branch [!]
+dir_branch="${B_CYAN}${dir}${RST}"
 if [[ -n "$git_branch" ]]; then
-  branch_section="${GRAY}${git_branch}${dirty}${RST}"
+  dir_branch+=" on ${B_PURPLE}${S_BRANCH}${git_branch}${RST}"
+  if [[ -n "$dirty" ]]; then dir_branch+=" ${B_RED}[!]${RST}"; fi
 fi
-if [[ -n "$branch_section" && -n "$lines_section" ]]; then
-  parts+=("${branch_section} ${lines_section}")
-elif [[ -n "$branch_section" ]]; then
-  parts+=("${branch_section}")
-elif [[ -n "$lines_section" ]]; then
-  parts+=("${lines_section}")
+if [[ -n "$lines_section" ]]; then
+  dir_branch+=" ${lines_section}"
 fi
+parts+=("$dir_branch")
 
 # Agent / Worktree 指示器（僅在非主 session 時顯示）
 if [[ -n "${wt_name:-}" ]]; then
