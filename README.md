@@ -35,7 +35,7 @@ Turn the blank status bar into a real-time dashboard: model, context usage with 
 | **Gradient progress bar** | True-color (24-bit) gradient from green → yellow → red. Falls back to ANSI 256 colors or ASCII automatically. |
 | **Smart hiding** | Zero values (`+0/-0`, `0m0s`, rate limits) are hidden. `$0.00` stays but dims. |
 | **Dynamic cost coloring** | Yellow by default, red when > $10. |
-| **Git branch + dirty** | Shows branch name with `*` for uncommitted changes. Cached for 5 seconds to stay fast. |
+| **Git branch + dirty** | Starship-style `dir on branch [!]` (bold cyan / purple / red); `[!]` marks uncommitted changes. Branch icon with Nerd Font. Cached for 5 seconds to stay fast. |
 | **Rate limits** | 5-hour and 7-day usage (Claude Pro/Max only). Red when > 80%. |
 | **Agent / Worktree indicator** | `⚙ code-reviewer` or `⚙ worktree:my-feature` — only when active. |
 | **Context window size** | Shows `1M` or `200k` only when not already in the model name. |
